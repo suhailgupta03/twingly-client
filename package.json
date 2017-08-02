@@ -1,0 +1,12 @@
+{
+  "name": "twingly-client-for-nodejs",
+  "version": "1.0.0",
+  "description": "twingly, nodejs, forum, blog, social, client",
+  "main": "index.js",
+  "author": "Suhail Gupta",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "request": "^2.81.0"
+  }
+}
