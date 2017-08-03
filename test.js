@@ -4,7 +4,12 @@ const parser = require('xml2json');
 let twingly = new Twingly();
 
 
-
+/**
+ * Following example illustrates how to use the API
+ * and shows how to scroll through large records
+ * @param {Number} pageSize 
+ * @param {Number} pageNumber 
+ */
 function call(pageSize, pageNumber) {
     twingly
         .content('guiltybytes')
