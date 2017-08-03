@@ -47,6 +47,24 @@ module.exports = class Twingly {
     }
 
     /**
+     * Sets the total number of matches found
+     * @param {Number} total 
+     */
+    totalMatches(total) {
+        this.tmatches = total;
+        return this;
+    }
+
+    /**
+     * Returns the previously set total matches found
+     * from the search
+     * @see totalMatches
+     */
+    getTotalMatches() {
+        return this.tmatches;
+    }
+    
+    /**
      * Sets the output format  
      * Note: XML is the only allowed value for blog
      * @param {*} outputFormat 
@@ -319,12 +337,35 @@ module.exports = class Twingly {
     }
 
     /**
+     * Limit the number of returned posts using the page size
+     * option
+     * @param {Number} size 
+     */
+    pageSize(size) {
+        if(size && size.toString().match(/^\d+$/))
+            this.query += ` page-size:${size}`;
+        return this;
+    }
+
+    /**
+     * Use it for moving through pages. Use this in 
+     * conjunction with pageSize
+     * @see pageSize
+     * @param {Number} pageNumber 
+     */
+    page(pageNumber) {
+        if(pageNumber && pageNumber.toString().match(/^\d+$/))
+            this.query += ` page:${pageNumber}`;
+        return this;
+    }
+
+    /**
      * Makes a HTTP request to the twingly REST API
      * Uses exponential backoff algorithm for the retry logic.
      * Maximum retries done equals 50
      */
     request() {
-        this.query = encodeURIComponent(this.query);
+        this.query = encodeURIComponent(decodeURIComponent(this.query));
         const url = `${this.blogBaseURL}?apikey=${this.apiKey}&q=${this.query}`;
         let options = {
             url: url,
