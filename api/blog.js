@@ -1,5 +1,12 @@
 require('dotenv').config();
 
+const request = require('request');
+const Promise = require('bluebird');
+const ExponentialBackoff = require('./exponential-backoff');
+let expb = new ExponentialBackoff();
+expb.collision(0); // Init the default collision count to zero
+const MAX_RETRIES = 50;
+
 module.exports.SORT = {
     /**
      * sort by published
@@ -33,8 +40,8 @@ module.exports = class Twingly {
      */
     constructor(platform = 'blog') {
         this.platform = platform;
-        this.blogBaseURL = process.env.blogBaseURL || "https://api.twingly.com/blog/search/api/v3/search";
-        this.apiKey = process.env.apiKey;
+        this.blogBaseURL = process.env.BLOG_BASE_URL || "https://api.twingly.com/blog/search/api/v3/search";
+        this.apiKey = process.env.API_KEY || "40DA9EC0-6F5D-498F-9295-1C476F2683F7";
         this.format = "xml";
         this.query = "";
     }
@@ -309,5 +316,62 @@ module.exports = class Twingly {
         if (order)
             this.query += ` sort-order:${order}`;
         return this;
+    }
+
+    /**
+     * Makes a HTTP request to the twingly REST API
+     * Uses exponential backoff algorithm for the retry logic.
+     * Maximum retries done equals 50
+     */
+    request() {
+        this.query = encodeURIComponent(this.query);
+        const url = `${this.blogBaseURL}?apikey=${this.apiKey}&q=${this.query}`;
+        let options = {
+            url: url,
+            method: 'GET',
+            headers: {
+                'Accept': 'text/xml',
+                'User-Agent': 'Ramona'
+            }
+        };
+
+        return new Promise((res, rej) => {
+
+            request(options, (err, resp) => {
+                if (resp.statusCode >= 500) {
+                    // Server Error; Give a retry
+                    let collisionCount = expb.getCollisionNumber() + 1; // Get the current collision count
+                    let waitTime = expb
+                        .collision(collisionCount)
+                        .expectedBackOffTime();
+
+                    if (MAX_RETRIES >= collisionCount) {
+                        setTimeout(() => {
+                            // Update the new collision count
+                            expb.collision(collisionCount);
+                            // Make a new request
+                            this.request();
+                        }, waitTime * 1000);
+                    } else {
+                        /**
+                         * Number of collisions have surpassed the maximum
+                         * number of allowed retries
+                         */
+                        rej(err);
+                    }
+                } else if (resp.statusCode >= 400) {
+                    // Reset the collision counter
+                    expb.collision(0);
+                    // Client Error; Notify the client; Reject promise
+                    rej(err, resp);
+                } else if (resp.statusCode >= 200 && resp.statusCode < 300) {
+                    // Reset the collision counter
+                    expb.collision(0);
+                    // All well!! Resolve the promise
+                    res(resp.body);
+                }
+            })
+        })
+
     }
 }
