@@ -57,14 +57,38 @@ module.exports = function () {
     }
 
     /**
-     * Sets the output format  
-     * Note: XML is the only allowed value for blog
-     * @param {*} outputFormat 
-     * @return {Object} Returns the class reference for method chaining
+     * Sets the total number of matches found
+     * @param {Number} total 
      */
 
 
     _createClass(Twingly, [{
+        key: 'totalMatches',
+        value: function totalMatches(total) {
+            this.tmatches = total;
+            return this;
+        }
+
+        /**
+         * Returns the previously set total matches found
+         * from the search
+         * @see totalMatches
+         */
+
+    }, {
+        key: 'getTotalMatches',
+        value: function getTotalMatches() {
+            return this.tmatches;
+        }
+
+        /**
+         * Sets the output format  
+         * Note: XML is the only allowed value for blog
+         * @param {*} outputFormat 
+         * @return {Object} Returns the class reference for method chaining
+         */
+
+    }, {
         key: 'setFormat',
         value: function setFormat() {
             var outputFormat = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'xml';
@@ -386,6 +410,33 @@ module.exports = function () {
         }
 
         /**
+         * Limit the number of returned posts using the page size
+         * option
+         * @param {Number} size 
+         */
+
+    }, {
+        key: 'pageSize',
+        value: function pageSize(size) {
+            if (size && size.toString().match(/^\d+$/)) this.query += ' page-size:' + size;
+            return this;
+        }
+
+        /**
+         * Use it for moving through pages. Use this in 
+         * conjunction with pageSize
+         * @see pageSize
+         * @param {Number} pageNumber 
+         */
+
+    }, {
+        key: 'page',
+        value: function page(pageNumber) {
+            if (pageNumber && pageNumber.toString().match(/^\d+$/)) this.query += ' page:' + pageNumber;
+            return this;
+        }
+
+        /**
          * Makes a HTTP request to the twingly REST API
          * Uses exponential backoff algorithm for the retry logic.
          * Maximum retries done equals 50
@@ -396,7 +447,7 @@ module.exports = function () {
         value: function request() {
             var _this = this;
 
-            this.query = encodeURIComponent(this.query);
+            this.query = encodeURIComponent(decodeURIComponent(this.query));
             var url = this.blogBaseURL + '?apikey=' + this.apiKey + '&q=' + this.query;
             var options = {
                 url: url,
