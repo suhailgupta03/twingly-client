@@ -6,12 +6,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 require('dotenv').config();
 
-var _request = require('request');
+var HttpClient = require('./http');
 var Promise = require('bluebird');
-var ExponentialBackoff = require('./exponential-backoff');
-var expb = new ExponentialBackoff();
-expb.collision(0); // Init the default collision count to zero
-var MAX_RETRIES = 50;
 
 module.exports.SORT = {
     /**
@@ -445,8 +441,6 @@ module.exports = function () {
     }, {
         key: 'request',
         value: function request() {
-            var _this = this;
-
             this.query = encodeURIComponent(decodeURIComponent(this.query));
             var url = this.blogBaseURL + '?apikey=' + this.apiKey + '&q=' + this.query;
             var options = {
@@ -454,45 +448,11 @@ module.exports = function () {
                 method: 'GET',
                 headers: {
                     'Accept': 'text/xml',
-                    'User-Agent': 'Ramona'
+                    'User-Agent': 'Ramona/1.0'
                 }
             };
 
-            return new Promise(function (res, rej) {
-
-                _request(options, function (err, resp) {
-                    if (resp.statusCode >= 500) {
-                        // Server Error; Give a retry
-                        var collisionCount = expb.getCollisionNumber() + 1; // Get the current collision count
-                        var waitTime = expb.collision(collisionCount).expectedBackOffTime();
-
-                        if (MAX_RETRIES >= collisionCount) {
-                            setTimeout(function () {
-                                // Update the new collision count
-                                expb.collision(collisionCount);
-                                // Make a new request
-                                _this.request();
-                            }, waitTime * 1000);
-                        } else {
-                            /**
-                             * Number of collisions have surpassed the maximum
-                             * number of allowed retries
-                             */
-                            rej(err);
-                        }
-                    } else if (resp.statusCode >= 400) {
-                        // Reset the collision counter
-                        expb.collision(0);
-                        // Client Error; Notify the client; Reject promise
-                        rej(err, resp);
-                    } else if (resp.statusCode >= 200 && resp.statusCode < 300) {
-                        // Reset the collision counter
-                        expb.collision(0);
-                        // All well!! Resolve the promise
-                        res(resp.body);
-                    }
-                });
-            });
+            return HttpClient.request(options);
         }
     }]);
 
