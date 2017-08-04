@@ -1,3 +1,5 @@
 node_modules
 /api/extract*.js
+/es5-build/extract*.js
 *.json
+*.gz
