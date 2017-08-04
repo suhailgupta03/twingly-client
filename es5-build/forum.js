@@ -331,9 +331,8 @@ module.exports = function () {
 
     }, {
         key: 'request',
-        value: function request() {
-            this.query = encodeURIComponent(decodeURIComponent(this.query));
-            var url = this.forumAPIEndpoint + '?apikey=' + this.apiKey + '&q=' + this.query;
+        value: function request(url) {
+            if (!url) url = this.forumAPIEndpoint + '?apikey=' + this.apiKey + '&q=' + this.query;
             var options = {
                 url: url,
                 method: 'GET',

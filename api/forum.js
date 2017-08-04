@@ -259,9 +259,9 @@ module.exports = class Forum {
      * Uses exponential backoff algorithm for the retry logic.
      * Maximum retries done equals 50
      */
-    request() {
-        this.query = encodeURIComponent(decodeURIComponent(this.query));
-        const url = `${this.forumAPIEndpoint}?apikey=${this.apiKey}&q=${this.query}`;
+    request(url) {
+        if (!url)
+            url = `${this.forumAPIEndpoint}?apikey=${this.apiKey}&q=${this.query}`;
         let options = {
             url: url,
             method: 'GET',

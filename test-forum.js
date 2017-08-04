@@ -13,12 +13,12 @@ function call(url) {
     forum
         .q('stackoverflow.com')
         .language('spanish')
-        .request()
+        .request(url)
         .then((r) => {
             ++requestsMade;
             bytesDownloaded += Buffer.byteLength(r);
             let records = JSON.parse(r);
-            if (records.totalResults != 0 && records.moreResultsAvailable != 0) {
+            if (records.totalResults != 0 || records.moreResultsAvailable != 0) {
                 let nextURL = `${forum.baseURL()}/${records.next}`;
                 table.push(
                     { 'Status': 'In progress ...' },
