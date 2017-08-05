@@ -46,13 +46,13 @@ module.exports = function () {
                              * Number of collisions have surpassed the maximum
                              * number of allowed retries
                              */
-                            rej(err);
+                            rej(new Error(resp.body));
                         }
                     } else if (resp.statusCode >= 400) {
                         // Reset the collision counter
                         expb.collision(0);
                         // Client Error; Notify the client; Reject promise
-                        rej(err, resp);
+                        rej(new Error(resp.body));
                     } else if (resp.statusCode >= 200 && resp.statusCode < 300) {
                         // Reset the collision counter
                         expb.collision(0);

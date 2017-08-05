@@ -22,6 +22,7 @@
   "scripts": {
     "transpile": "babel api --out-dir es5-build",
     "forum": "node test-forum",
-    "blog": "node test"
+    "blog": "node test",
+    "social": "node test-social"
   }
 }

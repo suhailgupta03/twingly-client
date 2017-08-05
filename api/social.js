@@ -43,10 +43,12 @@ module.exports = class Social {
      * @param {Array} hashtagList 
      */
     hashtags(hashtagList = []) {
-        if (hashtagList.length > 0)
+        if (Array.isArray(hashtagList))
             return this.appendQueryParameter('hashtags', hashtagList.join(' '));
-        else
+        else {
+            console.warn('hashtags expects a list');
             return this;
+        }
     }
 
     /**
@@ -222,9 +224,9 @@ module.exports = class Social {
         return this;
     }
 
-    request() {
-        this.query = encodeURIComponent(decodeURIComponent(this.query));
-        const url = `${this.apiEndPoint}?apikey=${this.apiKey}&q=${this.query}`;
+    request(url) {
+        if (!url)
+            url = `${this.apiEndPoint}?apikey=${this.apiKey}&${this.query}`;
         let options = {
             url: url,
             method: 'GET',
