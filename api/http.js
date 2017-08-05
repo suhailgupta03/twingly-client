@@ -1,6 +1,8 @@
 const request = require('request');
 const Promise = require('bluebird');
 const ExponentialBackoff = require('./exponential-backoff');
+const Table = require('cli-table');
+
 let expb = new ExponentialBackoff();
 expb.collision(0); // Init the default collision count to zero
 const MAX_RETRIES = 50;
@@ -17,6 +19,14 @@ module.exports = class HttpClient {
             
             request(options, (err, resp) => {
                 if (resp.statusCode >= 500) {
+                    let table = new Table();
+                    table.push(
+                        {'Error': resp.body},
+                        {'Retry attempt': expb.getCollisionNumber() + 1},
+                        {'Error code': resp.statusCode}
+                    );
+                    console.log(table.toString()); // Print the error to the console
+                    
                     // Server Error; Give a retry
                     let collisionCount = expb.getCollisionNumber() + 1; // Get the current collision count
                     let waitTime = expb

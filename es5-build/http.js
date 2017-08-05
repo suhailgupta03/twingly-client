@@ -7,6 +7,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var _request = require('request');
 var Promise = require('bluebird');
 var ExponentialBackoff = require('./exponential-backoff');
+var Table = require('cli-table');
+
 var expb = new ExponentialBackoff();
 expb.collision(0); // Init the default collision count to zero
 var MAX_RETRIES = 50;
@@ -30,6 +32,10 @@ module.exports = function () {
 
                 _request(options, function (err, resp) {
                     if (resp.statusCode >= 500) {
+                        var table = new Table();
+                        table.push({ 'Error': resp.body }, { 'Retry attempt': expb.getCollisionNumber() + 1 }, { 'Error code': resp.statusCode });
+                        console.log(table.toString()); // Print the error to the console
+
                         // Server Error; Give a retry
                         var collisionCount = expb.getCollisionNumber() + 1; // Get the current collision count
                         var waitTime = expb.collision(collisionCount).expectedBackOffTime();
